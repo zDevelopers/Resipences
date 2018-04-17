@@ -1,0 +1,21 @@
+name: Resipences
+version: 1.0
+main: fr.zcraft.resipences.Resipences
+
+description: Multiple inventories actually working (and NBT aware)
+author: Amaury Carrade
+
+softdepend:
+- EssentialsX
+
+commands:
+    home:
+        description: Goes to a home
+    sethome:
+        description: Creates/updates a home.
+    delhome:
+        description: Deletes a home.
+    homes:
+        description: Lists all the homes.
+    resipences:
+        description: Base command for other ones.

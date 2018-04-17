@@ -1,0 +1,52 @@
+### Resipences configuration file
+
+# The language (en or fr currently supported; empty = system language)
+lang:
+
+
+## Limits definition
+
+# The limits are defined for world groups.
+#
+# You'll first define world groups in the “worlds_group” section of this configuration
+# file. Follow the model: each key is a world group name that you'll use later (alphanumeric
+# or underscores, without spaces), and the value is a list of the worlds names in this
+# group.
+# All non-mentioned groups defaults to the “default” world group (if you define a group named that
+# way, worlds will be added to it anyway).
+#
+# Then, you'll define limits. Again follow the model: first pick a group name (same constrains:
+# alphanumeric and underscores, no spaces), and under it, associates for each world group,
+# the world group name defined before to the limit you want to give.
+# If you set “-1” as the limit, it will be understood as “unlimited”.
+# If you set “0”, the limit will be zero, as expected.
+# If the limit is unset for a group, it will fallback to zero.
+#
+# To pick up the right limit for someone, permissions are used. We check if the user
+# is given the “resipences.limits.<limit name>” (e.g. “resipences.limit.member”).
+# If there is multiple permissions given, the first group found with a valid permission
+# is used, and it can be pretty random (as the groups could be listed internally in another
+# order than the one you defines them), so you should avoid such a situation.
+# If no permission match, infinite limits are used, so the plugin can be used to give unlimited
+# homes to everyone without bothering with permissions.
+#
+# I'll repeat that just to be sure: if no limit can be found for a player, e.g. if no corresponding
+# permission node is give, the limit will be INFINITE.
+
+worlds_groups:
+    world:
+        - world
+        - world_nether
+    end:
+        - world_the_end
+
+limits:
+    member:
+        world: 5
+        end: 10
+    admin:
+        world: -1
+        end: -1
+    dada:
+        world: 5
+        end: -1
