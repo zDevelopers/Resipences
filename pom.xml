@@ -68,6 +68,8 @@
                 <arg>-dependencyfile</arg>
                 <arg>${project.build.directory}/.scala_dependencies</arg>
                 <arg>-language:postfixOps</arg>
+                <!-- Required for the RawText zLib API -->
+                <arg>-language:existentials</arg>
                 <arg>-feature</arg>
               </args>
             </configuration>

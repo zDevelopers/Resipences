@@ -31,9 +31,13 @@
  */
 package fr.zcraft.resipences.commands
 
+import java.util
+
 import fr.zcraft.zlib.components.commands.CommandInfo
 
 @CommandInfo(name = "del", usageParameters = "<name>")
 class DelHomeCommand extends BaseResipencesCommand {
   override protected def run(): Unit = ???
+
+  override protected def complete(): util.List[String] = if (args.length == 1) getMatchingHomes(args(0)) else util.Collections emptyList()
 }

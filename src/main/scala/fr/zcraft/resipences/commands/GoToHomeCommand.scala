@@ -31,6 +31,8 @@
  */
 package fr.zcraft.resipences.commands
 
+import java.util
+
 import fr.zcraft.zlib.components.commands.CommandInfo
 import fr.zcraft.zlib.components.i18n.I
 
@@ -42,4 +44,6 @@ class GoToHomeCommand extends BaseResipencesCommand {
       case _ => error(I t "This home cannot be found.")
     }
   }
+
+  override protected def complete(): util.List[String] = if (args.length == 1) getMatchingHomes(args(0)) else util.Collections emptyList()
 }

@@ -112,6 +112,25 @@ class Homes extends ZLibComponent with Listener {
 
 
   /**
+    * Retrieves the worlds names inside a group.
+    *
+    * @param worldsGroupName The group name.
+    * @return An option containing either the worlds names inside this group, as a vector,
+    *         or an empty option if the group does not exists.
+    */
+  def worldsInGroup(worldsGroupName: String): Option[Vector[String]] = worldsGroups get worldsGroupName
+
+
+  /**
+    * Retrieves the player's group by checking its permissions.
+    *
+    * @param player The player
+    * @return The player's group name wrapped into an Option, or an empty option if none can be found.
+    */
+  private def playerGroup(player: Player): Option[String] = limits.keys.find(groupName => player.hasPermission("resipences.limits." + groupName))
+
+
+  /**
     * Retrieves the homes limit for the given player, assuming the player's current world.
     *
     * @param player The player.
@@ -126,11 +145,23 @@ class Homes extends ZLibComponent with Listener {
     * @param world The world to check the limit for.
     * @return The limit.
     */
-  def limitFor(player: Player, world: World): Int = limits.keys.find(groupName => player.hasPermission("resipences.limits." + groupName)) match {
+  def limitFor(player: Player, world: World): Int = playerGroup(player) match {
     case Some(playerGroup) => reverseWorldsGroups get world.getName match {
       case Some(worldGroupName) => limits get playerGroup get worldGroupName
       case None => 0
     }
+    case _ => -1
+  }
+
+  /**
+    * Retrieves the homes limit for the given player
+    *
+    * @param player The player.
+    * @param worldGroupName The world group to check the limit for.
+    * @return The limit.
+    */
+  def limitFor(player: Player, worldGroupName: String): Int = playerGroup(player) match {
+    case Some(playerGroup) => limits get playerGroup get worldGroupName
     case _ => -1
   }
 
@@ -163,6 +194,7 @@ class Homes extends ZLibComponent with Listener {
     */
   def save(player: OfflinePlayer, callback: Boolean => Unit = (success: Boolean) => _): Unit = callback(true)
 
+
   /**
     * Returns data for a player, in the form of a mutable hash map.
     *
@@ -173,6 +205,18 @@ class Homes extends ZLibComponent with Listener {
     * @return Option: Some[mutable.HashMap] if the data is loaded, None else.
     */
   def homesFor(player: OfflinePlayer): Option[mutable.HashMap[String, Home]] = homes.get(player.getUniqueId)
+
+  /**
+    * Returns the homes of a given player grouped per world group.
+    *
+    * @param player The player.
+    * @return The grouped homes, or an empty Option if they are not loaded.
+    */
+  def homesByWorldGroup(player: OfflinePlayer): Option[Map[String, Iterable[Home]]] = homesFor(player) match {
+    case Some(data: mutable.Map[String, Home]) => Option(data.values.groupBy(h => reverseWorldsGroups(h.location.getWorld.getName)))
+    case _ => Option.empty
+  }
+
 
   /**
     * Sets a home for the given player.

@@ -31,9 +31,83 @@
  */
 package fr.zcraft.resipences.commands
 
+import fr.zcraft.resipences.homes.{Home, Homes}
 import fr.zcraft.zlib.components.commands.CommandInfo
+import fr.zcraft.zlib.components.i18n.I
+import fr.zcraft.zlib.components.rawtext.RawText
+import org.bukkit.ChatColor
 
 @CommandInfo(name = "list", usageParameters = "[region]")
 class ListHomesCommand extends BaseResipencesCommand {
-  override protected def run(): Unit = ???
+  override protected def run(): Unit = {
+    val homesCount = Homes.get.homesFor(playerSender()).size
+    val chatPrefix = "\u2503 "
+
+    if (homesCount == 0) {
+      send(
+        new RawText(I t "You don't have any home. Create one using /sethome <name>.")
+          .color(ChatColor.GRAY)
+          .suggest(classOf[SetHomeCommand])
+          .hover(I t "{gray}Click here to pre-fill the {cc}/sethome{gray} command.")
+      )
+      return
+    }
+
+    Homes.get.homesByWorldGroup(playerSender()) match {
+      case Some(homesByWorldGroup) =>
+        homesByWorldGroup.foreach {
+          case (worldsGroupName: String, homes: Iterable[Home]) =>
+            val homesListHover = new RawText(I t "The following worlds are in this group").color(ChatColor.BLUE).then("\n\n")
+            val homesLimit = Homes.get.limitFor(playerSender(), worldsGroupName)
+
+            Homes.get.worldsInGroup(worldsGroupName) match {
+              case Some(worldsNames) if worldsNames.size < 15 =>
+                worldsNames.foreach(worldName => homesListHover.then("- ").color(ChatColor.DARK_GRAY).then(worldName).color(ChatColor.WHITE).then("\n"))
+              case Some(worldsNames) if worldsNames.size >= 15 =>
+                homesListHover.then(worldsNames.mkString(ChatColor.GRAY + ", " + ChatColor.WHITE)).color(ChatColor.WHITE)
+              case _ => homesListHover.then(I t "(Unable to get the worlds list.)").color(ChatColor.GRAY)
+            }
+
+            send(
+              new RawText()
+                .then(I t("Homes in {0}", worldsGroupName)).color(ChatColor.GREEN).style(ChatColor.BOLD).hover(homesListHover)
+                .then(" (" + homes.size + " / " + (if (homesLimit == -1) "\u221E" else homesLimit) + ")").color(ChatColor.GRAY)
+                .build()
+            )
+
+            val m = homes.size
+            var i = 1
+
+            homes.grouped(3).foreach(three_homes => {
+              val line = new RawText()
+                .then(chatPrefix).color(ChatColor.DARK_GREEN).style(ChatColor.BOLD)
+
+              three_homes.foreach(home => {
+                line.then(home.name)
+                  .color(ChatColor.WHITE)
+                  .hover(
+                    new RawText(I t("{0} home", home.name)).color(ChatColor.BLUE).then("\n")
+                      .then(I t "World: ").color(ChatColor.GRAY).then(home.location.getWorld.getName).color(ChatColor.WHITE).then("\n")
+                      .then(I t "Location: ").color(ChatColor.GRAY).then(List(home.location.getBlockX, home.location.getBlockY, home.location.getBlockZ).mkString(", ")).color(ChatColor.WHITE).then("\n\n")
+                      .then(
+                        if (home.used > 0)
+                          I tn("{gray}Used {white}{0} {gray}time", "{gray}Used {white}{0} {gray}times", home.used)
+                        else
+                          I t "{gray}Never used (…yet)"
+                      )
+                  )
+                  .command(classOf[GoToHomeCommand], home.name)
+
+                  if (i < m) {
+                    line.then(", ").color(ChatColor.GRAY)
+                    i += 1
+                  }
+              })
+
+              send(line.build())
+            })
+        }
+      case _ => error(I t "Cannot display your homes, as they are not loaded.")
+    }
+  }
 }
